@@ -24,3 +24,21 @@ For the parsing step, we consider a disambiguated grammar given by the following
 <unary>      = !<unary> | -<unary> | <primary>
 <primary>    = <NUMBER> | <STRING> | true | false | nil | (<expression>)
 ```
+
+To extend the power of our languages and include statements, we have to extend our grammar
+to the following:
+
+```
+<program> = <statement><program> | EOF
+<statement> = <exprStmt> | <printStmt>
+<exprStmt> = <expression>;
+<printStmt> = print <expression>;
+
+<expression> = <equality>
+<equality>   = <comparison> != <comparison> | <comparison> == <comparison>
+<comparison> = <term> > <term> | <term> >= <term> | <term> < <term> | <term> <= <term>
+<term>       = <factor> - <factor> | <factor> + <factor>
+<factor>     = <unary> / <unary> | <unary> * <unary>
+<unary>      = !<unary> | -<unary> | <primary>
+<primary>    = <NUMBER> | <STRING> | true | false | nil | (<expression>)
+```
