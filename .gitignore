@@ -31,3 +31,6 @@ bin/
 
 # macOS
 .DS_Store
+
+# Test programs
+tests/
