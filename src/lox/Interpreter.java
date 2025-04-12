@@ -93,8 +93,11 @@ class Interpreter implements Expr.Visitor<Object> {
                 throw new RuntimeError(expr.operator,
                         "Operands must be numbers or strings");
             case SLASH:
+                checkNumberOperands(expr.operator, left, right);
+                checkDivisorNotZero(expr.operator, (double) right);
                 return (double) left / (double) right;
             case STAR:
+                checkNumberOperands(expr.operator, left, right);
                 return (double) left * (double) right;
         }
 
@@ -105,7 +108,7 @@ class Interpreter implements Expr.Visitor<Object> {
             Object left, Object right) {
         if (left instanceof Double && right instanceof Double)
             return;
-        throw new RuntimeError(operator, "Operands must be numbers.");
+        throw new RuntimeError(operator, "Operands must be numbers");
     }
 
     private boolean isEqual(Object a, Object b) {
@@ -115,6 +118,13 @@ class Interpreter implements Expr.Visitor<Object> {
             return false;
 
         return a.equals(b);
+    }
+
+    private void checkDivisorNotZero(Token operator, Double right) {
+        if (right != 0)
+            return;
+        throw new RuntimeError(operator,
+                "Division by zero is not defined");
     }
 
     private String stringify(Object object) {
