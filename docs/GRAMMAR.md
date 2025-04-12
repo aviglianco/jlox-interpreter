@@ -86,3 +86,27 @@ If we add blocks to our language, the grammar has to be extended to the followin
 <unary>       = !<unary> | -<unary> | <primary>
 <primary>     = <NUMBER> | <STRING> | <IDENTIFIER> | true | false | nil | (<expression>)
 ```
+
+When adding control flow to our language, we have to extend the grammar even further:
+
+```
+<program>     = <declaration><program> | EOF
+
+<declaration> = <varDecl> | <statement>
+<varDecl>     = var <IDENTIFIER>; | var <IDENTIFIER> = <expression>;
+<statement>   = <exprStmt> | <printStmt> | <block> | <ifStmt>
+<exprStmt>    = <expression>;
+<printStmt>   = print <expression>;
+<block>       = {<declaration>}
+<ifStmt>      = if (<expression>) <statement>
+              | if (<expression>) <statement> else <statement>
+
+<expression>  = <assignment>
+<assignment>  = <IDENTIFIER> = <assignment> | <equality>
+<equality>    = <comparison> != <comparison> | <comparison> == <comparison>
+<comparison>  = <term> > <term> | <term> >= <term> | <term> < <term> | <term> <= <term>
+<term>        = <factor> - <factor> | <factor> + <factor>
+<factor>      = <unary> / <unary> | <unary> * <unary>
+<unary>       = !<unary> | -<unary> | <primary>
+<primary>     = <NUMBER> | <STRING> | <IDENTIFIER> | true | false | nil | (<expression>)
+```
