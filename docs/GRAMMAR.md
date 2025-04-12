@@ -5,9 +5,11 @@
 
 <declaration> = <varDecl> | <statement>
 <varDecl>     = var <IDENTIFIER>; | var <IDENTIFIER> = <expression>;
-<statement>   = <exprStmt> | <printStmt> | <block> | <ifStmt> | <whileStmt>
+<statement>   = <exprStmt> | <printStmt> | <block> | <forStmt> 
+              | <ifStmt> | <whileStmt>
 <exprStmt>    = <expression>;
 <printStmt>   = print <expression>;
+<forStmt>     = for (<varDecl>; <expression>; <expression>) <statement>
 <block>       = {<declaration>}
 <ifStmt>      = if (<expression>) <statement>
               | if (<expression>) <statement> else <statement>
