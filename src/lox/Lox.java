@@ -45,9 +45,39 @@ public class Lox {
             String line = reader.readLine();
             if (line == null)
                 break;
-            run(line);
+            runPromptLine(line);
             hadError = false;
         }
+    }
+
+    private static void runPromptLine(String line) {
+        Scanner scanner = new Scanner(line);
+        List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        List<Stmt> statements = parser.parse();
+
+        if (hadError)
+            return;
+
+        if (statements.size() == 1 && statements.get(0) instanceof Stmt.Expression) {
+            Stmt.Expression exprStmt = (Stmt.Expression) statements.get(0);
+            Object result = interpreter.evaluate(exprStmt.expression);
+            System.out.println(stringify(result));
+        } else {
+            interpreter.interpret(statements);
+        }
+    }
+
+    private static String stringify(Object object) {
+        if (object == null) return "nil";
+        if (object instanceof Double) {
+            String text = object.toString();
+            if (text.endsWith(".0")) {
+                text = text.substring(0, text.length() - 2);
+            }
+            return text;
+        }
+        return object.toString();
     }
 
     private static void run(String source) {

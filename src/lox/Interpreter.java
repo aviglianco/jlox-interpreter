@@ -5,42 +5,40 @@ import java.util.List;
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment environment = new Environment();
 
-    @Override
-    public Void visitBlockStmt(Stmt.Block stmt) {
-        executeBlock(stmt.statements, new Environment(environment));
-        return null;
-    }
+    // ===== Core Interpreter Methods =====
 
-    @Override
-    public Void visitExpressionStmt(Stmt.Expression stmt) {
-        evaluate(stmt.expression);
-        return null;
-    }
-
-    @Override
-    public Void visitPrintStmt(Stmt.Print stmt) {
-        Object value = evaluate(stmt.expression);
-        System.out.println(stringify(value));
-        return null;
-    }
-
-    @Override
-    public Void visitVarStmt(Stmt.Var stmt) {
-        Object value = null;
-        if (stmt.initializer != null) {
-            value = evaluate(stmt.initializer);
+    public void interpret(List<Stmt> statements) {
+        try {
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } catch (RuntimeError error) {
+            Lox.runtimeError(error);
         }
-
-        environment.define(stmt.name.lexeme, value);
-        return null;
     }
 
-    @Override
-    public Object visitAssignExpr(Expr.Assign expr) {
-        Object value = evaluate(expr.value);
-        environment.assign(expr.name, value);
-        return value;
+    public Object evaluate(Expr expr) {
+        return expr.accept(this);
     }
+
+    private void execute(Stmt stmt) {
+        stmt.accept(this);
+    }
+
+    void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
+        try {
+            this.environment = environment;
+
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
+    // ===== Expression Visitor Methods =====
 
     @Override
     public Object visitBinaryExpr(Expr.Binary expr) {
@@ -122,40 +120,48 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return environment.get(expr.name);
     }
 
-    void interpret(List<Stmt> statements) {
-        try {
-            for (Stmt statement : statements) {
-                execute(statement);
-            }
-        } catch (RuntimeError error) {
-            Lox.runtimeError(error);
+    @Override
+    public Object visitAssignExpr(Expr.Assign expr) {
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
+    }
+
+    // ===== Statement Visitor Methods =====
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        Object value = null;
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer);
         }
+
+        environment.define(stmt.name.lexeme, value);
+        return null;
     }
 
-    private Object evaluate(Expr expr) {
-        return expr.accept(this);
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
     }
 
-    void executeBlock(List<Stmt> statements,
-            Environment environment) {
-        Environment previous = this.environment;
-        try {
-            this.environment = environment;
+    // ===== Utility Methods =====
 
-            for (Stmt statement : statements) {
-                execute(statement);
-            }
-        } finally {
-            this.environment = previous;
-        }
-    }
-
-    private void execute(Stmt stmt) {
-        stmt.accept(this);
-    }
-
-    private void checkNumberOperands(Token operator,
-            Object left, Object right) {
+    private void checkNumberOperands(Token operator, Object left, Object right) {
         if (left instanceof Double && right instanceof Double)
             return;
         throw new RuntimeError(operator, "Operands must be numbers.");
@@ -164,8 +170,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private void checkDivisorNotZero(Token operator, Double right) {
         if (right != 0)
             return;
-        throw new RuntimeError(operator,
-                "Division by zero is undefined.");
+        throw new RuntimeError(operator, "Division by zero is undefined.");
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
