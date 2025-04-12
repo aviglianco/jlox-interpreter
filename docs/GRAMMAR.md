@@ -29,10 +29,10 @@ To extend the power of our languages and include statements, we have to extend o
 to the following:
 
 ```
-<program> = <statement><program> | EOF
-<statement> = <exprStmt> | <printStmt>
-<exprStmt> = <expression>;
-<printStmt> = print <expression>;
+<program>    = <statement><program> | EOF
+<statement>  = <exprStmt> | <printStmt>
+<exprStmt>   = <expression>;
+<printStmt>  = print <expression>;
 
 <expression> = <equality>
 <equality>   = <comparison> != <comparison> | <comparison> == <comparison>
@@ -41,4 +41,25 @@ to the following:
 <factor>     = <unary> / <unary> | <unary> * <unary>
 <unary>      = !<unary> | -<unary> | <primary>
 <primary>    = <NUMBER> | <STRING> | true | false | nil | (<expression>)
+```
+
+Now we want to support the declaration and use of variables, so we have to extend our grammar
+with the following productions:
+
+```
+<program>     = <declaration><program> | EOF
+
+<declaration> = <varDecl> | <statement>
+<varDecl>     = var <IDENTIFIER>; | var <IDENTIFIER> = <expression>;
+<statement>   = <exprStmt> | <printStmt>
+<exprStmt>    = <expression>;
+<printStmt>   = print <expression>;
+
+<expression>  = <equality>
+<equality>    = <comparison> != <comparison> | <comparison> == <comparison>
+<comparison>  = <term> > <term> | <term> >= <term> | <term> < <term> | <term> <= <term>
+<term>        = <factor> - <factor> | <factor> + <factor>
+<factor>      = <unary> / <unary> | <unary> * <unary>
+<unary>       = !<unary> | -<unary> | <primary>
+<primary>     = <NUMBER> | <STRING> | <IDENTIFIER> | true | false | nil | (<expression>)
 ```
