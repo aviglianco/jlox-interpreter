@@ -1,10 +1,14 @@
 package lox;
 
-class Interpreter implements Expr.Visitor<Object> {
-    void interpret(Expr expression) {
+import java.util.List;
+
+class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+
+    void interpret(List<Stmt> statements) {
         try {
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
@@ -33,7 +37,7 @@ class Interpreter implements Expr.Visitor<Object> {
     private void checkNumberOperand(Token operator, Object operand) {
         if (operand instanceof Double)
             return;
-        throw new RuntimeError(operator, "Operand must be a number");
+        throw new RuntimeError(operator, "Operand must be a number.");
     }
 
     private boolean isTruthy(Object object) {
@@ -52,6 +56,10 @@ class Interpreter implements Expr.Visitor<Object> {
 
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    private void execute(Stmt stmt) {
+        stmt.accept(this);
     }
 
     @Override
@@ -91,7 +99,7 @@ class Interpreter implements Expr.Visitor<Object> {
                 }
 
                 throw new RuntimeError(expr.operator,
-                        "Operands must be numbers or strings");
+                        "Operands must be numbers or strings.");
             case SLASH:
                 checkNumberOperands(expr.operator, left, right);
                 checkDivisorNotZero(expr.operator, (double) right);
@@ -108,7 +116,7 @@ class Interpreter implements Expr.Visitor<Object> {
             Object left, Object right) {
         if (left instanceof Double && right instanceof Double)
             return;
-        throw new RuntimeError(operator, "Operands must be numbers");
+        throw new RuntimeError(operator, "Operands must be numbers.");
     }
 
     private boolean isEqual(Object a, Object b) {
@@ -124,7 +132,7 @@ class Interpreter implements Expr.Visitor<Object> {
         if (right != 0)
             return;
         throw new RuntimeError(operator,
-                "Division by zero is not defined");
+                "Division by zero is undefined.");
     }
 
     private String stringify(Object object) {
@@ -140,5 +148,18 @@ class Interpreter implements Expr.Visitor<Object> {
         }
 
         return object.toString();
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
     }
 }
