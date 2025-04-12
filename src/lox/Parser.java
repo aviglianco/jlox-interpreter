@@ -19,14 +19,22 @@ public class Parser {
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
 
         return statements;
     }
 
-    private Expr expression() {
-        return equality();
+    private Stmt declaration() {
+        try {
+            if (match(VAR))
+                return varDeclaration();
+
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
     }
 
     private Stmt statement() {
@@ -36,16 +44,50 @@ public class Parser {
         return expressionStatement();
     }
 
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(SEMICOLON, "Expected ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
     private Stmt printStatement() {
         Expr value = expression();
         consume(SEMICOLON, "Expected ';' after value.");
         return new Stmt.Print(value);
     }
 
-    private Stmt expressionStatement() {
-        Expr expr = expression();
-        consume(SEMICOLON, "Expected ';' after expression.");
-        return new Stmt.Expression(expr);
+    private Stmt varDeclaration() {
+        Token name = consume(IDENTIFIER, "Expected variable name.");
+
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(SEMICOLON, "Expected ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
+    }
+
+    private Expr expression() {
+        return assignment();
+    }
+
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     private Expr equality() {
@@ -118,6 +160,10 @@ public class Parser {
             return new Expr.Literal(previous().literal);
         }
 
+        if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
+        }
+
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expected ')' after expression.");
@@ -125,13 +171,6 @@ public class Parser {
         }
 
         throw error(peek(), "Expected expression.");
-    }
-
-    private Token consume(TokenType type, String message) {
-        if (check(type))
-            return advance();
-
-        throw error(peek(), message);
     }
 
     private ParseError error(Token token, String message) {
@@ -179,14 +218,14 @@ public class Parser {
         return peek().type == type;
     }
 
+    private boolean isAtEnd() {
+        return peek().type == EOF;
+    }
+
     private Token advance() {
         if (!isAtEnd())
             current++;
         return previous();
-    }
-
-    private boolean isAtEnd() {
-        return peek().type == EOF;
     }
 
     private Token peek() {
@@ -195,5 +234,12 @@ public class Parser {
 
     private Token previous() {
         return tokens.get(current - 1);
+    }
+
+    private Token consume(TokenType type, String message) {
+        if (check(type))
+            return advance();
+
+        throw error(peek(), message);
     }
 }
