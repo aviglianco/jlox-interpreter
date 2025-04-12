@@ -84,12 +84,14 @@ class Interpreter implements Expr.Visitor<Object> {
                     return (double) left + (double) right;
                 }
 
-                if (left instanceof String && right instanceof String) {
-                    return (String) left + (String) right;
+                // Handle string concatenation (either operand can be a string)
+                if ((left instanceof String || left instanceof Double) &&
+                        (right instanceof String || right instanceof Double)) {
+                    return stringify(left) + stringify(right);
                 }
 
                 throw new RuntimeError(expr.operator,
-                        "Operands must be two numbers or two strings");
+                        "Operands must be numbers or strings");
             case SLASH:
                 return (double) left / (double) right;
             case STAR:
