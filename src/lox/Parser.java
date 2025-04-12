@@ -16,6 +16,8 @@ public class Parser {
         this.tokens = tokens;
     }
 
+    // ===== Core Parsing Methods =====
+
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
@@ -37,11 +39,15 @@ public class Parser {
         }
     }
 
+    // ===== Statement Parsing Methods =====
+
     private Stmt statement() {
         if (match(IF))
             return ifStatement();
         if (match(PRINT))
             return printStatement();
+        if (match(WHILE))
+            return whileStatement();
         if (match(LEFT_BRACE))
             return new Stmt.Block(block());
 
@@ -60,6 +66,15 @@ public class Parser {
         }
 
         return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    private Stmt whileStatement() {
+        consume(LEFT_PAREN, "Expected '(' after 'while'.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expected ')' after while condition.");
+        Stmt body = statement();
+
+        return new Stmt.While(condition, body);
     }
 
     private List<Stmt> block() {
@@ -96,6 +111,8 @@ public class Parser {
         consume(SEMICOLON, "Expected ';' after variable declaration.");
         return new Stmt.Var(name, initializer);
     }
+
+    // ===== Expression Parsing Methods =====
 
     private Expr expression() {
         return assignment();
@@ -225,6 +242,8 @@ public class Parser {
 
         throw error(peek(), "Expected expression.");
     }
+
+    // ===== Utility Methods =====
 
     private ParseError error(Token token, String message) {
         Lox.error(token, message);

@@ -5,12 +5,13 @@
 
 <declaration> = <varDecl> | <statement>
 <varDecl>     = var <IDENTIFIER>; | var <IDENTIFIER> = <expression>;
-<statement>   = <exprStmt> | <printStmt> | <block> | <ifStmt>
+<statement>   = <exprStmt> | <printStmt> | <block> | <ifStmt> | <whileStmt>
 <exprStmt>    = <expression>;
 <printStmt>   = print <expression>;
 <block>       = {<declaration>}
 <ifStmt>      = if (<expression>) <statement>
               | if (<expression>) <statement> else <statement>
+<whileStmt>   = while (<expression>) <statement>
 
 <expression>  = <assignment>
 <assignment>  = <IDENTIFIER> = <assignment> | <equality> | <logicOr>
