@@ -55,7 +55,8 @@ with the following productions:
 <exprStmt>    = <expression>;
 <printStmt>   = print <expression>;
 
-<expression>  = <equality>
+<expression>  = <assignment>
+<assignment>  = <IDENTIFIER> = <assignment> | <equality>
 <equality>    = <comparison> != <comparison> | <comparison> == <comparison>
 <comparison>  = <term> > <term> | <term> >= <term> | <term> < <term> | <term> <= <term>
 <term>        = <factor> - <factor> | <factor> + <factor>
