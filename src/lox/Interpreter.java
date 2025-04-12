@@ -5,6 +5,13 @@ import java.util.List;
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment environment = new Environment();
 
+    // Custom exception for break statements
+    private static class BreakError extends RuntimeException {
+        BreakError() {
+            super(null, null, false, false);
+        }
+    }
+
     // ===== Core Interpreter Methods =====
 
     public void interpret(List<Stmt> statements) {
@@ -186,10 +193,24 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
-        while (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.body);
+        try {
+            while (isTruthy(evaluate(stmt.condition))) {
+                try {
+                    execute(stmt.body);
+                } catch (BreakError e) {
+                    break;
+                }
+            }
+        } catch (BreakError e) {
+            // Re-throw if we're not in a while loop
+            throw e;
         }
         return null;
+    }
+
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        throw new BreakError();
     }
 
     // ===== Utility Methods =====
