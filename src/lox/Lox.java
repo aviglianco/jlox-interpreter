@@ -69,7 +69,8 @@ public class Lox {
     }
 
     private static String stringify(Object object) {
-        if (object == null) return "nil";
+        if (object == null)
+            return "nil";
         if (object instanceof Double) {
             String text = object.toString();
             if (text.endsWith(".0")) {
@@ -85,6 +86,12 @@ public class Lox {
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         List<Stmt> statements = parser.parse();
+
+        if (hadError)
+            return;
+
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
 
         if (hadError)
             return;

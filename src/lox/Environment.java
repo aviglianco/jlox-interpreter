@@ -20,7 +20,24 @@ class Environment {
         values.put(name, value);
         initialized.put(name, true);
     }
-    
+
+    Environment ancestor(int distance) {
+        Environment environment = this;
+        for (int i = 0; i < distance; i++) {
+            environment = environment.enclosing;
+        }
+
+        return environment;
+    }
+
+    Object getAt(int distance, String name) {
+        return ancestor(distance).values.get(name);
+    }
+
+    void assignAt(int distance, Token name, Object value) {
+        ancestor(distance).values.put(name.lexeme, value);
+    }
+
     void defineUninitialized(String name) {
         values.put(name, null);
         initialized.put(name, false);
@@ -29,8 +46,8 @@ class Environment {
     Object get(Token name) {
         if (values.containsKey(name.lexeme)) {
             if (!initialized.getOrDefault(name.lexeme, false)) {
-                throw new RuntimeError(name, "Cannot read local variable '" + 
-                    name.lexeme + "' before it is initialized.");
+                throw new RuntimeError(name, "Cannot read local variable '" +
+                        name.lexeme + "' before it is initialized.");
             }
             return values.get(name.lexeme);
         }
