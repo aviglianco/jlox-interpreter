@@ -3,10 +3,12 @@
 ```
 <program>     = <declaration><program> | EOF
 
-<declaration> = <varDecl> | <statement>
+<declaration> = <funDecl> | <varDecl> | <statement>
+<funDecl>     = fun <function>
+<function>    = <IDENTIFIER> (<parameters>) <block>
 <varDecl>     = var <IDENTIFIER>; | var <IDENTIFIER> = <expression>;
 <statement>   = <exprStmt> | <printStmt> | <block> | <forStmt> 
-              | <ifStmt> | <whileStmt> | <breakStmt>
+              | <ifStmt> | <whileStmt> | <breakStmt> | <returnStmt>
 <exprStmt>    = <expression>;
 <printStmt>   = print <expression>;
 <forStmt>     = for (<varDecl>; <expression>; <expression>) <statement>
@@ -15,6 +17,7 @@
               | if (<expression>) <statement> else <statement>
 <whileStmt>   = while (<expression>) <statement>
 <breakStmt>   = break;  // Only allowed inside loops
+<returnStmt>  = return <expression>; | return;
 
 <expression>  = <assignment>
 <assignment>  = <IDENTIFIER> = <assignment> | <equality> | <logicOr>
@@ -24,6 +27,8 @@
 <comparison>  = <term> > <term> | <term> >= <term> | <term> < <term> | <term> <= <term>
 <term>        = <factor> - <factor> | <factor> + <factor>
 <factor>      = <unary> / <unary> | <unary> * <unary>
-<unary>       = !<unary> | -<unary> | <primary>
+<unary>       = !<unary> | -<unary> | <call>
+<call>        = <primary>() | <primary>(<arguments>)
+<arguments>   = <expression> | <expression>, <arguments>
 <primary>     = <NUMBER> | <STRING> | <IDENTIFIER> | true | false | nil | (<expression>)
 ```
