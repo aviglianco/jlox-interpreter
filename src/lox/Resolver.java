@@ -175,6 +175,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         resolve(stmt.body);
 
         currentLoop = enclosingLoop;
+      
         return null;
     }
 
@@ -245,6 +246,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Lox.error(expr.keyword,
                     "Can't use 'super' in a class with no superclass.");
         }
+      
         resolveLocal(expr, expr.keyword);
         return null;
     }
@@ -255,7 +257,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Lox.error(expr.keyword,
                     "Can't use 'this' outside of a class.");
         }
-
+      
         resolveLocal(expr, expr.keyword);
         return null;
     }

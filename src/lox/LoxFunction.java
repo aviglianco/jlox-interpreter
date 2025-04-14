@@ -12,6 +12,7 @@ class LoxFunction implements LoxCallable {
         this.closure = closure;
         this.isInitializer = isInitializer;
         this.declaration = declaration;
+        this.isInitializer = isInitializer;
     }
 
     @Override
@@ -51,5 +52,11 @@ class LoxFunction implements LoxCallable {
     @Override
     public String toString() {
         return "<fn " + declaration.name.lexeme + ">";
+    }
+
+    LoxFunction bind(LoxInstance instance) {
+        Environment environment = new Environment(closure);
+        environment.define("this", instance);
+        return new LoxFunction(declaration, environment, isInitializer);
     }
 }

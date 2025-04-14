@@ -3,7 +3,9 @@
 ```
 <program>     = <declaration><program> | EOF
 
-<declaration> = <funDecl> | <varDecl> | <statement>
+<declaration> = <classDecl> | <funDecl> | <varDecl> | <statement>
+<classDecl>   = class <IDENTIFIER> { <function> }
+              | class <IDENTIFIER> < <IDENTIFIER> { <function> }
 <funDecl>     = fun <function>
 <function>    = <IDENTIFIER> (<parameters>) <block>
 <varDecl>     = var <IDENTIFIER>; | var <IDENTIFIER> = <expression>;
@@ -30,5 +32,6 @@
 <unary>       = !<unary> | -<unary> | <call>
 <call>        = <primary>() | <primary>(<arguments>)
 <arguments>   = <expression> | <expression>, <arguments>
-<primary>     = <NUMBER> | <STRING> | <IDENTIFIER> | true | false | nil | (<expression>)
+<primary>     = <NUMBER> | <STRING> | <IDENTIFIER> 
+              | true | false | nil | (<expression>) | super.<IDENTIFIER>
 ```
