@@ -89,7 +89,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             superclass = evaluate(stmt.superclass);
             if (!(superclass instanceof LoxClass)) {
                 throw new RuntimeError(stmt.superclass.name,
-                        "Superclass must be a defined class.");
+                        "Superclass of '" + stmt.name + "' must be a class");
             }
         }
 

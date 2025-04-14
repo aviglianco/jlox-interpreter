@@ -173,6 +173,27 @@ public class Parser {
         return new Stmt.Expression(expr);
     }
 
+    private Stmt classDeclaration() {
+        Token name = consume(IDENTIFIER, "Expected class name.");
+
+        Expr.Variable superclass = null;
+        if (match(LESS)) {
+            consume(IDENTIFIER, "Expected superclass name.");
+            superclass = new Expr.Variable(previous());
+        }
+
+        consume(LEFT_BRACE, "Expected '{' after class name.");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"));
+        }
+
+        consume(RIGHT_BRACE, "Expected '}' after class body.");
+
+        return new Stmt.Class(name, superclass, methods);
+    }
+
     private Stmt.Function function(String kind) {
         Token name = consume(IDENTIFIER, "Expected " + kind + " name.");
 
