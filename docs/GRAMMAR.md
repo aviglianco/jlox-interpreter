@@ -3,7 +3,9 @@
 ```
 <program>     = <declaration><program> | EOF
 
-<declaration> = <funDecl> | <varDecl> | <statement>
+<declaration> = <classDecl> | <funDecl> | <varDecl> | <statement>
+<classDecl>   = class <IDENTIFIER> { <function> }
+              | class <IDENTIFIER> < <IDENTIFIER> { <function> }
 <funDecl>     = fun <function>
 <function>    = <IDENTIFIER> (<parameters>) <block>
 <varDecl>     = var <IDENTIFIER>; | var <IDENTIFIER> = <expression>;
