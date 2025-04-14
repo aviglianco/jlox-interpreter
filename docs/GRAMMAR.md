@@ -32,5 +32,6 @@
 <unary>       = !<unary> | -<unary> | <call>
 <call>        = <primary>() | <primary>(<arguments>)
 <arguments>   = <expression> | <expression>, <arguments>
-<primary>     = <NUMBER> | <STRING> | <IDENTIFIER> | true | false | nil | (<expression>)
+<primary>     = <NUMBER> | <STRING> | <IDENTIFIER> 
+              | true | false | nil | (<expression>) | super.<IDENTIFIER>
 ```
