@@ -74,6 +74,122 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
+    // ===== Statement Visitor Methods =====
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
+    }
+
+    @Override
+    public Void visitClassStmt(Stmt.Class stmt) {
+        Object superclass = null;
+        if (stmt.superclass != null) {
+            superclass = evaluate(stmt.superclass);
+            if (!(superclass instanceof LoxClass)) {
+                throw new RuntimeError(stmt.superclass.name,
+                        "Superclass of '" + stmt.name + "' must be a class");
+            }
+        }
+
+        environment.define(stmt.name.lexeme, null);
+
+        if (stmt.superclass != null) {
+            environment = new Environment(environment);
+            environment.define("super", superclass);
+        }
+
+        Map<String, LoxFunction> methods = new HashMap<>();
+        for (Stmt.Function method : stmt.methods) {
+            LoxFunction function = new LoxFunction(method, environment,
+                    method.name.lexeme.equals("init"));
+            methods.put(method.name.lexeme, function);
+        }
+
+        LoxClass klass = new LoxClass(stmt.name.lexeme, (LoxClass) superclass,
+                methods);
+
+        if (superclass != null) {
+            environment = environment.enclosing;
+        }
+
+        environment.assign(stmt.name, klass);
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        LoxFunction function = new LoxFunction(stmt, environment, false);
+        environment.define(stmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if (stmt.value != null)
+            value = evaluate(stmt.value);
+
+        throw new Return(value);
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        if (stmt.initializer != null) {
+            Object value = evaluate(stmt.initializer);
+            environment.define(stmt.name.lexeme, value);
+        } else {
+            environment.defineUninitialized(stmt.name.lexeme);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStmt(Stmt.While stmt) {
+        try {
+            while (isTruthy(evaluate(stmt.condition))) {
+                try {
+                    execute(stmt.body);
+                } catch (BreakError e) {
+                    break;
+                }
+            }
+        } catch (BreakError e) {
+            // Re-throw if we're not in a while loop
+            throw e;
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        throw new BreakError();
+    }
+
     // ===== Expression Visitor Methods =====
 
     @Override
@@ -256,122 +372,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         return value;
-    }
-
-    // ===== Statement Visitor Methods =====
-
-    @Override
-    public Void visitBlockStmt(Stmt.Block stmt) {
-        executeBlock(stmt.statements, new Environment(environment));
-        return null;
-    }
-
-    @Override
-    public Void visitClassStmt(Stmt.Class stmt) {
-        Object superclass = null;
-        if (stmt.superclass != null) {
-            superclass = evaluate(stmt.superclass);
-            if (!(superclass instanceof LoxClass)) {
-                throw new RuntimeError(stmt.superclass.name,
-                        "Superclass of '" + stmt.name + "' must be a class");
-            }
-        }
-
-        environment.define(stmt.name.lexeme, null);
-
-        if (stmt.superclass != null) {
-            environment = new Environment(environment);
-            environment.define("super", superclass);
-        }
-
-        Map<String, LoxFunction> methods = new HashMap<>();
-        for (Stmt.Function method : stmt.methods) {
-            LoxFunction function = new LoxFunction(method, environment,
-                    method.name.lexeme.equals("init"));
-            methods.put(method.name.lexeme, function);
-        }
-
-        LoxClass klass = new LoxClass(stmt.name.lexeme, (LoxClass) superclass,
-                methods);
-
-        if (superclass != null) {
-            environment = environment.enclosing;
-        }
-
-        environment.assign(stmt.name, klass);
-        return null;
-    }
-
-    @Override
-    public Void visitExpressionStmt(Stmt.Expression stmt) {
-        evaluate(stmt.expression);
-        return null;
-    }
-
-    @Override
-    public Void visitFunctionStmt(Stmt.Function stmt) {
-        LoxFunction function = new LoxFunction(stmt, environment, false);
-        environment.define(stmt.name.lexeme, function);
-        return null;
-    }
-
-    @Override
-    public Void visitIfStmt(Stmt.If stmt) {
-        if (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.thenBranch);
-        } else if (stmt.elseBranch != null) {
-            execute(stmt.elseBranch);
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitPrintStmt(Stmt.Print stmt) {
-        Object value = evaluate(stmt.expression);
-        System.out.println(stringify(value));
-        return null;
-    }
-
-    @Override
-    public Void visitReturnStmt(Stmt.Return stmt) {
-        Object value = null;
-        if (stmt.value != null)
-            value = evaluate(stmt.value);
-
-        throw new Return(value);
-    }
-
-    @Override
-    public Void visitVarStmt(Stmt.Var stmt) {
-        if (stmt.initializer != null) {
-            Object value = evaluate(stmt.initializer);
-            environment.define(stmt.name.lexeme, value);
-        } else {
-            environment.defineUninitialized(stmt.name.lexeme);
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitWhileStmt(Stmt.While stmt) {
-        try {
-            while (isTruthy(evaluate(stmt.condition))) {
-                try {
-                    execute(stmt.body);
-                } catch (BreakError e) {
-                    break;
-                }
-            }
-        } catch (BreakError e) {
-            // Re-throw if we're not in a while loop
-            throw e;
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitBreakStmt(Stmt.Break stmt) {
-        throw new BreakError();
     }
 
     // ===== Utility Methods =====
